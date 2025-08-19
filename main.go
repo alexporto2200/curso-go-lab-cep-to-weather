@@ -50,6 +50,9 @@ type TemperatureResponse struct {
 func main() {
 	r := gin.Default()
 
+	// Configure trusted proxies for security
+	r.SetTrustedProxies([]string{"127.0.0.1", "localhost"})
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
@@ -58,6 +61,16 @@ func main() {
 	fmt.Printf("Iniciando API CEP to Weather na porta %s\n", port)
 	fmt.Printf("Endpoint disponível: http://localhost:%s/{cep}\n", port)
 
+	// Serve static files (CSS, JS, images)
+	r.Static("/static", "./static")
+
+	// Serve the HTML file for root path
+	r.GET("/", func(c *gin.Context) {
+		// Serve the HTML file directly
+		c.File("index.html")
+	})
+
+	// API endpoint for CEP weather
 	r.GET("/:cep", getWeather)
 
 	fmt.Printf("Servidor iniciado com sucesso!\n")

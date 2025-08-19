@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CEP to Weather - Consulta de Temperatura</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+
+        .search-form {
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .cep-input {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .cep-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .search-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            margin: 20px 0;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .result {
+            display: none;
+            margin-top: 30px;
+        }
+
+        .temperature-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .temp-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .temp-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .temp-unit {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .error {
+            background: #ff6b6b;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .location-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .location-text {
+            color: #333;
+            font-weight: 500;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .logo {
+                font-size: 2rem;
+            }
+            
+            .temperature-cards {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🌤️ CEP to Weather </div>
+        <div class="subtitle">Consulte a temperatura de qualquer localidade pelo CEP</div>
+        
+        <form class="search-form" id="cepForm">
+            <div class="input-group">
+                <input 
+                    type="text" 
+                    class="cep-input" 
+                    id="cepInput" 
+                    placeholder="Digite o CEP (ex: 01001000)"
+                    maxlength="9"
+                    required
+                >
+            </div>
+            <button type="submit" class="search-btn" id="searchBtn">
+                🔍 Consultar Temperatura
+            </button>
+        </form>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Consultando dados...</p>
+        </div>
+
+        <div class="error" id="error"></div>
+
+        <div class="result" id="result">
+            <div class="location-info" id="locationInfo">
+                <div class="location-text" id="locationText"></div>
+            </div>
+            
+            <div class="temperature-cards">
+                <div class="temp-card">
+                    <div class="temp-value" id="tempC">--</div>
+                    <div class="temp-unit">Celsius</div>
+                </div>
+                <div class="temp-card">
+                    <div class="temp-value" id="tempF">--</div>
+                    <div class="temp-unit">Fahrenheit</div>
+                </div>
+                <div class="temp-card">
+                    <div class="temp-value" id="tempK">--</div>
+                    <div class="temp-unit">Kelvin</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const cepForm = document.getElementById('cepForm');
+        const cepInput = document.getElementById('cepInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const loading = document.getElementById('loading');
+        const result = document.getElementById('result');
+        const error = document.getElementById('error');
+        const locationText = document.getElementById('locationText');
+        const tempC = document.getElementById('tempC');
+        const tempF = document.getElementById('tempF');
+        const tempK = document.getElementById('tempK');
+
+        // Máscara para o CEP
+        cepInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 5) {
+                value = value.substring(0, 5) + '-' + value.substring(5, 8);
+            }
+            e.target.value = value;
+        });
+
+        cepForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const cep = cepInput.value.replace(/\D/g, '');
+            
+            if (cep.length !== 8) {
+                showError('Por favor, digite um CEP válido com 8 dígitos.');
+                return;
+            }
+
+            await consultarTemperatura(cep);
+        });
+
+        async function consultarTemperatura(cep) {
+            try {
+                // Mostrar loading
+                showLoading(true);
+                hideError();
+                hideResult();
+
+                // Fazer requisição para a API
+                const response = await fetch(`/${cep}`);
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Erro ao consultar CEP');
+                }
+
+                const data = await response.json();
+                
+                // Exibir resultados
+                displayResults(data, cep);
+                
+            } catch (err) {
+                console.error('Erro:', err);
+                showError(err.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function displayResults(data, cep) {
+            // Formatar CEP para exibição
+            const cepFormatado = cep.substring(0, 5) + '-' + cep.substring(5);
+            
+            // Exibir localização (simulada, já que a API não retorna)
+            locationText.textContent = `Temperatura para CEP: ${cepFormatado}`;
+            
+            // Exibir temperaturas
+            tempC.textContent = `${data.temp_C.toFixed(1)}°`;
+            tempF.textContent = `${data.temp_F.toFixed(1)}°`;
+            tempK.textContent = `${data.temp_K.toFixed(1)}K`;
+            
+            showResult();
+        }
+
+        function showLoading(show) {
+            loading.style.display = show ? 'block' : 'none';
+            searchBtn.disabled = show;
+        }
+
+        function showError(message) {
+            error.textContent = message;
+            error.style.display = 'block';
+        }
+
+        function hideError() {
+            error.style.display = 'none';
+        }
+
+        function showResult() {
+            result.style.display = 'block';
+        }
+
+        function hideResult() {
+            result.style.display = 'none';
+        }
+
+        // Focar no input quando a página carregar
+        window.addEventListener('load', function() {
+            cepInput.focus();
+        });
+    </script>
+</body>
+</html>
