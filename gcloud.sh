@@ -46,3 +46,8 @@ gcloud beta run services logs tail curso-go-lab-cep-to-weather --project alexpes
 
 # ver instancia status / url
 gcloud run services describe curso-go-lab-cep-to-weather --project alexpessoal --region us-central1 
+
+
+## atualizar o container
+
+

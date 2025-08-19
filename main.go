@@ -61,12 +61,22 @@ func main() {
 	fmt.Printf("Iniciando API CEP to Weather na porta %s\n", port)
 	fmt.Printf("Endpoint disponível: http://localhost:%s/{cep}\n", port)
 
-	// Serve static files (CSS, JS, images)
+	if files, err := os.ReadDir("."); err == nil {
+		fmt.Printf("Arquivos no diretório atual:\n")
+		for _, file := range files {
+			fmt.Printf("  - %s\n", file.Name())
+		}
+	}
+
 	r.Static("/static", "./static")
 
-	// Serve the HTML file for root path
 	r.GET("/", func(c *gin.Context) {
-		// Serve the HTML file directly
+		if _, err := os.Stat("index.html"); os.IsNotExist(err) {
+			fmt.Printf("ERRO: arquivo index.html não encontrado no diretório atual\n")
+			c.String(500, "Arquivo HTML não encontrado")
+			return
+		}
+		fmt.Printf("Servindo arquivo index.html\n")
 		c.File("index.html")
 	})
 
@@ -82,7 +92,6 @@ func getWeather(c *gin.Context) {
 
 	fmt.Printf("Consultando CEP: %s\n", cep)
 
-	// Validar formato do CEP (8 dígitos)
 	if !isValidCEP(cep) {
 		fmt.Printf("CEP inválido: %s\n", cep)
 		c.JSON(422, gin.H{"error": "invalid zipcode"})

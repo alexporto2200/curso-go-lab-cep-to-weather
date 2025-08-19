@@ -9,7 +9,11 @@ https://curso-go-lab-cep-to-weather-647852575015.us-central1.run.app/85650000
 Altere o cep no final da url para ver o clima da cidade.
 
 
+## Interface web 
 
+O html gerado no chatgpt
+
+https://curso-go-lab-cep-to-weather-647852575015.us-central1.run.app/
 
 
 
